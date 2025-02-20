@@ -9,8 +9,10 @@ import matplotlib.pyplot as plt
 import random
 import inspect
 import pandas as pd
-degreeOfRegression = 3
+degreeOfRegression = 2
 trainedCoef= []
+
+removedVariables = ["MiscFeature"]
 
 subsetOfVariables = ["LotArea","YearBuilt","YearRemodAdd","1stFlrSF","2ndFlrSF","GrLivArea","BedroomAbvGr","Fireplaces",
                      "PoolArea","GarageArea", "GarageFinish","MSZoning","Street","Alley","LandContour","LotShape", "Utilities",
@@ -21,7 +23,7 @@ subsetOfVariables = ["LotArea","YearBuilt","YearRemodAdd","1stFlrSF","2ndFlrSF",
                      "WoodDeckSF","OpenPorchSF","EnclosedPorch","3SsnPorch","ScreenPorch","MiscVal","MoSold","BsmtUnfSF","ExterQual", "ExterCond", 
                      "Foundation", "BsmtQual", "BsmtCond","BsmtExposure", "BsmtFinType1", "BsmtFinType2", "Heating", "HeatingQC", 
                      "CentralAir", "Electrical", "LotConfig", "KitchenQual", "Functional","FireplaceQu", "GarageType", "GarageQual", "GarageCond", 
-                     "PavedDrive","PoolQC", "Fence", "MiscFeature", "SaleType", "SaleCondition"]
+                     "PavedDrive","PoolQC", "Fence",  "SaleType", "SaleCondition"]
 setOfSpecialVariables = ["GarageFinish","MSZoning","Street","Alley","LandContour","LotShape","Utilities","LandSlope","Neighborhood", 
                          "Condition1", "Condition2","BldgType", "HouseStyle","RoofStyle","RoofMatl","Exterior1st","Exterior2nd","MasVnrType",
                          "ExterQual","ExterCond","Foundation","BsmtQual","BsmtCond","BsmtExposure","BsmtFinType1","BsmtFinType2","Heating","HeatingQC","CentralAir","Electrical",
@@ -173,7 +175,7 @@ def convertFence(data):
     return convertCategorical(data, categories, inspect.currentframe().f_code.co_name)
 
 def convertMiscFeature(data):
-    categories = ["Elev", "Gar2", "Othr", "Shed", "TenC", "NA"]
+    categories = ["Elev", "Gar2", "Othr", "Shed", "TenC", "NA","nan"]
     return convertCategorical(data, categories, inspect.currentframe().f_code.co_name)
 
 def convertSaleType(data):
@@ -391,8 +393,8 @@ def convertAlley(data):
         print("Irregular Trainingset: ", inspect.currentframe().f_code.co_name, "percentage:", irregularCounter/len(data))  
     return np.array(returnData).T
 
-def getSubsetOfData(headerNames=subsetOfVariables):
-    data = readCSV()
+def getSubsetOfData(headerNames=subsetOfVariables,file="train.csv"):
+    data = readCSV(file)
     subsetData = []
     for x in headerNames:
         if(x in setOfSpecialVariables):
@@ -449,12 +451,91 @@ def getSubsetOfData(headerNames=subsetOfVariables):
             elif x == "MasVnrType":
                 for x in convertMasVnrType(data[x]):
                     subsetData.append(x)
+            elif x == "ExterQual":
+                for x in convertExterQual(data[x]):
+                    subsetData.append(x)           
+            elif x == "ExterCond":
+                for x in convertExterCond(data[x]):
+                    subsetData.append(x)
+            elif x == "Foundation":
+                for x in convertFoundation(data[x]):
+                    subsetData.append(x)
+            elif x == "BsmtQual":
+                for x in convertBsmtQual(data[x]):
+                    subsetData.append(x)
+            elif x == "BsmtCond":
+                for x in convertBsmtCond(data[x]):
+                    subsetData.append(x)
+            elif x == "BsmtExposure":
+                for x in convertBsmtExposure(data[x]):
+                    subsetData.append(x)
+            elif x == "BsmtFinType1":
+                for x in convertBsmtFinType1(data[x]):
+                    subsetData.append(x)
+            elif x == "BsmtFinType2":
+                for x in convertBsmtFinType2(data[x]):
+                    subsetData.append(x)
+            elif x == "Heating":
+                for x in convertHeating(data[x]):
+                    subsetData.append(x)
+            elif x == "HeatingQC":
+                for x in convertHeatingQC(data[x]):
+                    subsetData.append(x)
+            elif x == "CentralAir":
+                for x in convertCentralAir(data[x]):
+                    subsetData.append(x)
+            elif x == "Electrical":
+                for x in convertElectrical(data[x]):
+                    subsetData.append(x)
+            elif x == "LotConfig":
+                for x in convertLotConfig(data[x]):
+                    subsetData.append(x)
+            elif x == "KitchenQual":
+                for x in convertKitchenQual(data[x]):
+                    subsetData.append(x)
+            elif x == "Functional":
+                for x in convertFunctional(data[x]):
+                    subsetData.append(x)
+            elif x == "FireplaceQu":
+                for x in convertFireplaceQu(data[x]):
+                    subsetData.append(x)
+            elif x == "GarageType":
+                for x in convertGarageType(data[x]):
+                    subsetData.append(x)
+            elif x == "GarageQual":
+                for x in convertGarageQual(data[x]):
+                    subsetData.append(x)
+            elif x == "GarageCond":
+                for x in convertGarageCond(data[x]):
+                    subsetData.append(x)
+            elif x == "PavedDrive":
+                for x in convertPavedDrive(data[x]):
+                    subsetData.append(x)
+            elif x == "PoolQC":
+                for x in convertPoolQC(data[x]):
+                    subsetData.append(x)
+            elif x == "Fence":
+                for x in convertFence(data[x]):
+                    subsetData.append(x)
+            elif x == "MiscFeature":
+                for x in convertMiscFeature(data[x]):
+                    subsetData.append(x)
+            elif x == "SaleType":
+                for x in convertSaleType(data[x]):
+                    subsetData.append(x)
+            elif x == "SaleCondition":
+                for x in convertSaleCondition(data[x]):
+                    subsetData.append(x)
+
                             
                     
         else:
             correctedData = verifyValues(data[x])
             subsetData.append(pd.Series(correctedData))
     return np.array(subsetData).T
+
+def filterNegativeData(data):
+    return [x if( x>0)else int(round(np.mean(data))) for x in data]
 
 def verifyValues(data):
     int_values = [x for x in data if isinstance(x, int)]
@@ -471,12 +552,13 @@ def getCSVHeaders():
     return data.columns
 
 def readCSV(filePath="train.csv"):
-    data = pd.read_csv(filePath)
+    data = pd.read_csv(filePath,na_values=[],keep_default_na=False)
     return data
 
-def plotPredictions(predictions,trueValues, x):
+def plotPredictions(predictions,x,trueValues=[]):
 
-    plt.scatter(x, trueValues, s=50,c="blue",marker='H',label="True Values")
+    if(len(trueValues)!=0):
+        plt.scatter(x, trueValues, s=50,c="blue",marker='H',label="True Values")
     plt.scatter(x, predictions, s=20,c="red",alpha=0.75, label = "Prediction")
 
  
@@ -549,13 +631,21 @@ def buildModel(start=0,end=-1):
     trainedCoef.append(fit_polynomial_ridge(getSubsetOfData()[start:end:],readCSV()["SalePrice"][start:end:]))
     
 def createPlot(start = 0, stepsize = 1,inputData = getSubsetOfData()):
-    
-    plotPredictions(predict_polynomial(trainedCoef[0], inputData)[start::stepsize], readCSV()["SalePrice"][start::stepsize], readCSV()["Id"][start::stepsize])
+    plotPredictions(predict_polynomial(trainedCoef[0],inputData)[start::stepsize], readCSV()["Id"][start::stepsize],readCSV()["SalePrice"][start::stepsize])
     
 def run(startPlot = 0,stepsizePlot = 1, startTrainData=0, endTrainData=-1):
     trainedCoef.clear()
     buildModel(start=startTrainData,end=endTrainData)
     createPlot(startPlot,stepsizePlot)
+    
+def testRun(plotStepsize=50,file="test.csv",startData=0):
+    predictedVal =predict_polynomial(trainedCoef[0],getSubsetOfData(file=file))
+    filteredPredictedVal = filterNegativeData(predictedVal)
+    plotPredictions(filteredPredictedVal[startData::plotStepsize],readCSV(file)["Id"][startData::plotStepsize])
+    return predict_polynomial(trainedCoef[0],getSubsetOfData(file=file))
+
+def validateTestRun(plotStepsize=50,file="test.csv",startData=0):
+    plotPredictions(readCSV()["SalePrice"][startData::plotStepsize], readCSV(file)["Id"][startData::plotStepsize])
 
 # Example usage
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ import random
 import inspect
 import pandas as pd
 from itertools import combinations
+from termcolor import colored
 degreeOfRegression = 3
 trainedCoef= []
 prints = []
@@ -655,13 +656,13 @@ def bruteForceParameterTesting(fixedParameters,variableParameters):
     for x in combo:
         subsetOfVariables.clear()
         subsetOfVariables.append(x+fixedParameters)
-        print("VariableParameters:", x)
+        # print("VariableParameters:", x)
         
         run(1400,1,0,1400, subsetOfVariables[0])
         performanceData.append([x,prints[0][1],prints[1][1]])
         prints.clear()
 
-    print(findBestPerformance(performanceData))
+    printPerformanceHighlighted(performanceData)
     
 def findBestPerformance(data):
     bestOf = 5
@@ -674,6 +675,21 @@ def findBestPerformance(data):
         if x not in top_3_middle:
             top_3_middle.append(x)
     return top_3_middle
+
+def printPerformanceHighlighted(data):
+    max_percentage = max(row[1] for row in data)
+
+    # Find the lowest third value
+    min_third_value = min(row[2] for row in data)
+    
+    # Print all data with highlights
+    for row in data:
+        features, percentage, third_value = row
+        percentage_str = colored(f"{percentage:.6f}", "red") if percentage == max_percentage else f"{percentage:.6f}"
+        third_value_str = colored(f"{third_value:.6f}", "green") if third_value == min_third_value else f"{third_value:.6f}"
+    
+        print(f"{features}, {percentage_str}, {third_value_str}")
+
 def get_combinations(lst):
     return [list(combo) for i in range(1, len(lst) + 1) for combo in combinations(lst, i)]
 
@@ -701,6 +717,11 @@ def getRMSE(prediction,trueValue,start=0,stop=-1,text=""):
 def savePredictionsToCSV(data):
     np.savetxt("myPredictions", data,delimiter=",")
 
+def select_random_items(lst, return_size):
+    """Select a specified number of random items from a list."""
+    if return_size > len(lst):
+        raise ValueError("return_size cannot be greater than the list size")
+    return random.sample(lst, return_size)
 
 # Example usage
 if __name__ == "__main__":

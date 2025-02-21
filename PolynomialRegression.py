@@ -9,12 +9,16 @@ import matplotlib.pyplot as plt
 import random
 import inspect
 import pandas as pd
-degreeOfRegression = 2
+from itertools import combinations
+degreeOfRegression = 3
 trainedCoef= []
+prints = []
 
 removedVariables = ["MiscFeature"]
 
-subsetOfVariables = ["LotArea","YearBuilt","YearRemodAdd","1stFlrSF","2ndFlrSF","GrLivArea","BedroomAbvGr","Fireplaces",
+fixVariables = ["LotArea","YearBuilt","YearRemodAdd","1stFlrSF","2ndFlrSF","GrLivArea","BedroomAbvGr","Fireplaces","Street","Alley","LandContour","LotShape", "Utilities"]
+
+allVariables = ["LotArea","YearBuilt","YearRemodAdd","1stFlrSF","2ndFlrSF","GrLivArea","BedroomAbvGr","Fireplaces",
                      "PoolArea","GarageArea", "GarageFinish","MSZoning","Street","Alley","LandContour","LotShape", "Utilities",
                      "LandSlope","Neighborhood","Condition1", "Condition2","BldgType", "HouseStyle" ,"OverallQual","OverallCond",
                      "RoofStyle","RoofMatl","Exterior1st","Exterior2nd","MasVnrType","MasVnrArea","ExterQual","ExterCond","Foundation",
@@ -24,6 +28,11 @@ subsetOfVariables = ["LotArea","YearBuilt","YearRemodAdd","1stFlrSF","2ndFlrSF",
                      "Foundation", "BsmtQual", "BsmtCond","BsmtExposure", "BsmtFinType1", "BsmtFinType2", "Heating", "HeatingQC", 
                      "CentralAir", "Electrical", "LotConfig", "KitchenQual", "Functional","FireplaceQu", "GarageType", "GarageQual", "GarageCond", 
                      "PavedDrive","PoolQC", "Fence",  "SaleType", "SaleCondition"]
+
+varVariables = [x for x in allVariables if x not in fixVariables]
+
+subsetOfVariables = []
+
 setOfSpecialVariables = ["GarageFinish","MSZoning","Street","Alley","LandContour","LotShape","Utilities","LandSlope","Neighborhood", 
                          "Condition1", "Condition2","BldgType", "HouseStyle","RoofStyle","RoofMatl","Exterior1st","Exterior2nd","MasVnrType",
                          "ExterQual","ExterCond","Foundation","BsmtQual","BsmtCond","BsmtExposure","BsmtFinType1","BsmtFinType2","Heating","HeatingQC","CentralAir","Electrical",
@@ -393,7 +402,7 @@ def convertAlley(data):
         print("Irregular Trainingset: ", inspect.currentframe().f_code.co_name, "percentage:", irregularCounter/len(data))  
     return np.array(returnData).T
 
-def getSubsetOfData(headerNames=subsetOfVariables,file="train.csv"):
+def getSubsetOfData(headerNames=allVariables ,file="train.csv"):
     data = readCSV(file)
     subsetData = []
     for x in headerNames:
@@ -563,8 +572,8 @@ def plotPredictions(predictions,x,trueValues=[]):
 
  
     # plt.axvline(x=10,color="black",linestyle="--")
-    titleValues = " \n ".join([" ; ".join(subsetOfVariables[i:i+6]) for i in range(0,len(subsetOfVariables),6)])
-    plt.title( titleValues, fontsize=10)
+    # titleValues = " \n ".join([" ; ".join(subsetOfVariables[i:i+6]) for i in range(0,len(subsetOfVariables),6)])
+    # plt.title( titleValues, fontsize=10)
     plt.legend()
     
     plt.show()
@@ -627,16 +636,47 @@ def predict_polynomial(coeffs, X, degree=degreeOfRegression):
     
     return predictions
 
-def buildModel(start=0,end=-1):
-    trainedCoef.append(fit_polynomial_ridge(getSubsetOfData()[start:end:],readCSV()["SalePrice"][start:end:]))
+def buildModel(start=0,end=-1,data=getSubsetOfData()):
+    trainedCoef.append(fit_polynomial_ridge(data[start:end:],readCSV()["SalePrice"][start:end:]))
     
 def createPlot(start = 0, stepsize = 1,inputData = getSubsetOfData()):
     plotPredictions(predict_polynomial(trainedCoef[0],inputData)[start::stepsize], readCSV()["Id"][start::stepsize],readCSV()["SalePrice"][start::stepsize])
     
-def run(startPlot = 0,stepsizePlot = 1, startTrainData=0, endTrainData=-1):
+def run(startPlot = 0,stepsizePlot = 1, startTrainData=0, endTrainData=-1, dataParameters=allVariables):
     trainedCoef.clear()
-    buildModel(start=startTrainData,end=endTrainData)
-    createPlot(startPlot,stepsizePlot)
+    buildModel(startTrainData,endTrainData, getSubsetOfData(dataParameters))
+    createPlot(startPlot,stepsizePlot,getSubsetOfData(dataParameters))
+    # print("RMSE:", getRMSE(predict_polynomial(trainedCoef[0],getSubsetOfData(dataParameters)),np.array(readCSV()["SalePrice"]),endTrainData))
+    prints.append(["RMSE:", getRMSE(predict_polynomial(trainedCoef[0],getSubsetOfData(dataParameters)),np.array(readCSV()["SalePrice"]),endTrainData)])   
+
+def bruteForceParameterTesting(fixedParameters,variableParameters):
+    combo = get_combinations(variableParameters)
+    performanceData = []
+    for x in combo:
+        subsetOfVariables.clear()
+        subsetOfVariables.append(x+fixedParameters)
+        print("VariableParameters:", x)
+        
+        run(1400,1,0,1400, subsetOfVariables[0])
+        performanceData.append([x,prints[0][1],prints[1][1]])
+        prints.clear()
+
+    print(findBestPerformance(performanceData))
+    
+def findBestPerformance(data):
+    bestOf = 5
+    top_3_middle = sorted(data, key=lambda x: x[1], reverse=True)[:bestOf]
+
+# Get top 3 lowest last values
+    top_3_last = sorted(data, key=lambda x: x[2])[:bestOf]
+    
+    for x in top_3_last:
+        if x not in top_3_middle:
+            top_3_middle.append(x)
+    return top_3_middle
+def get_combinations(lst):
+    return [list(combo) for i in range(1, len(lst) + 1) for combo in combinations(lst, i)]
+
     
 def testRun(plotStepsize=50,file="test.csv",startData=0):
     predictedVal =predict_polynomial(trainedCoef[0],getSubsetOfData(file=file))
@@ -647,9 +687,24 @@ def testRun(plotStepsize=50,file="test.csv",startData=0):
 def validateTestRun(plotStepsize=50,file="test.csv",startData=0):
     plotPredictions(readCSV()["SalePrice"][startData::plotStepsize], readCSV(file)["Id"][startData::plotStepsize])
 
+def getRMSE(prediction,trueValue,start=0,stop=-1,text=""):
+    rmse=0
+    below5k=0
+    for p,t in zip(prediction[start::],trueValue[start::]):
+        rmse  += np.square(p-t)
+        if(np.sqrt((p-t)**2)<6000):
+            below5k += 1
+    # print("below 5k in %:", below5k/len(prediction[start::]))
+    prints.append(["below 5k in %:", below5k/len(prediction[start::])])
+    return np.sqrt(rmse/len(prediction[start::]))
+
+def savePredictionsToCSV(data):
+    np.savetxt("myPredictions", data,delimiter=",")
+
+
 # Example usage
 if __name__ == "__main__":
-    print("---")
+    subsetOfVariables = allVariables
     # X_train = generateRandomSet(100)
     # y_train = myTestFunction(X_train)
     
